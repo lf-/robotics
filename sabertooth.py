@@ -5,10 +5,13 @@ import atexit
 start = bytes((170,))
 ser = serial.Serial('/dev/ttyAMA0', 9600)
 
+max_speed = 127
+
 SPEED_FWD_M1= 0
 SPEED_BACK_M1 = 1
 SPEED_FWD_M2 = 4
 SPEED_BACK_M2 = 5
+
 
 class Sabertooth:
     def __init__(self, addr):
@@ -21,10 +24,10 @@ class Sabertooth:
     @motor1.setter
     def motor1(self, speed):
         # no sending in stupid values and crashing
-        if speed > 255:
-            speed = 255
-        elif speed < -255:
-            speed = -255
+        if speed > max_speed:
+            speed = max_speed
+        elif speed < -max_speed:
+            speed = -max_speed
 
         self._motor1speed = speed
         if speed >= 0:
@@ -40,10 +43,10 @@ class Sabertooth:
     @motor2.setter
     def motor2(self, speed):
         # no sending in stupid values and crashing
-        if speed > 255:
-            speed = 255
-        elif speed < -255:
-            speed = -255
+        if speed > max_speed:
+            speed = max_speed
+        elif speed < -max_speed:
+            speed = -max_speed
 
         self._motor2speed = speed
         if speed >= 0:
