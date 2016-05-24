@@ -1,6 +1,7 @@
 import serial
 import math
 import atexit
+import os
 
 start = bytes((170,))
 ser = serial.Serial('/dev/ttyAMA0', 9600)
@@ -53,7 +54,7 @@ class Sabertooth:
         send(packet)
 
 def generate_packet(addr, cmd, data):
-    checksum = (addr + cmd + data) & 0b01111111
+    checksum = ((addr + cmd + data) % 256) & 0b01111111
     return bytes((addr, cmd, data, checksum))
 
 def send(data):
