@@ -58,6 +58,8 @@ def generate_packet(addr, cmd, data):
     return bytes((addr, cmd, data, checksum))
 
 def send(data):
+    if 'LF_SERIAL_DEBUG' in os.environ:
+        print(data.hex())
     ser.write(data)
 
 def setup():
