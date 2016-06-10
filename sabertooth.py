@@ -2,9 +2,26 @@ import serial
 import math
 import atexit
 import os
+import os.path
 
 start = bytes((170,))
-ser = serial.Serial('/dev/ttyAMA0', 9600)
+
+serial_device = '/dev/ttyAMA0'
+test_device = None
+
+if not os.path.isfile(serial_device):
+    # must be running on a test machine, give it a pty
+    import ctypes
+    libc = ctypes.cdll.LoadLibrary('libc.so.6')
+    libc.ptsname.restype = ctypes.c_char_p
+    serial_device = '/dev/ptmx'
+    ser = serial.Serial(serial_device, 9600)
+    libc.grantpt(ser.fd)
+    libc.unlockpt(ser.fd)
+    test_device = libc.ptsname(ser.fd).decode('utf-8')
+else:
+    ser = serial.Serial(serial_device, 9600)
+
 
 SPEED_FWD_M1= 0
 SPEED_BACK_M1 = 1
