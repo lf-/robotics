@@ -15,8 +15,8 @@ class Servo:
 
     @rate.setter
     def rate(self, ms):
-        self.angle = (ms - 1000) * (9/50)
-        self.rate = ms
+        self._angle = (ms - 1000) * (9/50)
+        self._rate = ms
         servo.set_servo(self.pin, self.rate)
 
 
@@ -26,8 +26,8 @@ class Servo:
 
     @angle.setter
     def angle(self, angle):
-        self.angle = angle 
-        self.rate = ((50/9.0)*angle) + 1000
+        self._angle = angle 
+        self._rate = ((50/9.0)*angle) + 1000
         servo.set_servo(self.pin, self.rate)
 
     def stop(self):
