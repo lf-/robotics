@@ -34,6 +34,8 @@ SPEED_BACK_M2 = 5
 class Sabertooth:
     def __init__(self, addr):
         self.addr = addr
+        self._motor1speed = None
+        self._motor2speed = None
 
     @property
     def motor1(self):
