@@ -19,7 +19,6 @@ class Servo:
         self._rate = ms
         servo.set_servo(self.pin, self.rate)
 
-
     @property
     def angle(self):
         return self._angle
@@ -31,14 +30,13 @@ class Servo:
         servo.set_servo(self.pin, self.rate)
 
     def stop(self):
-        print("stop")
         servo.stop_servo(self.pin)
 
 def to_angle(ms):
-    return (ms- 1000) * (9/50.0)
+    return (ms - 1000) * (9 / 50)
 
 def to_milliseconds(angle):
-    return ((50/9.0) * angle) + 1000
+    return ((50 / 9) * angle) + 1000
 
 
 def main():
