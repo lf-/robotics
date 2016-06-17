@@ -9,7 +9,7 @@ start = bytes((170,))
 serial_device = '/dev/ttyAMA0'
 test_device = None
 
-if not os.path.isfile(serial_device):
+if not os.path.exists(serial_device):
     # must be running on a test machine, give it a pty
     import ctypes
     libc = ctypes.cdll.LoadLibrary('libc.so.6')
