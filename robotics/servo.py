@@ -3,13 +3,6 @@ import os.path
 import atexit
 
 
-ANGLE_MIN = 0
-ANGLE_MAX = 180
-# µs min/max
-US_MIN = 500
-US_MAX = 2500
-
-
 if os.path.exists('/dev/servoblaster'):
     # running on pi
     servoblaster_fd = open('/dev/servoblaster', 'wb+', buffering=0)
