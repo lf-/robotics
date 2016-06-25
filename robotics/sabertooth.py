@@ -3,9 +3,11 @@ import math
 import atexit
 import os
 import os.path
+import threading
 
 start = bytes((170,))
 
+serial_write_lock = threading.Lock()
 serial_device = '/dev/ttyAMA0'
 test_device = None
 
@@ -82,7 +84,8 @@ def generate_packet(addr, cmd, data):
 def send(data):
     if 'LF_SERIAL_DEBUG' in os.environ:
         print(data.hex())
-    ser.write(data)
+    with serial_write_lock:
+        ser.write(data)
 
 def setup():
     send(start)

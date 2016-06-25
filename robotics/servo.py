@@ -1,6 +1,11 @@
 import os
 import os.path
 import atexit
+import threading
+from . import util
+
+
+sb_write_lock = threading.Lock()
 
 
 if os.path.exists('/dev/servoblaster'):
@@ -58,7 +63,7 @@ class Servo:
                 new_angle > self.angle_uS_coupling[1]):
             raise ValueError('New angle outside of range '
                              '{0[0]}-{0[1]}'.format(self.angle_uS_coupling))
-        uS = int(round(translate(new_angle, *self.angle_uS_coupling), -1))
+        uS = int(round(util.translate(new_angle, *self.angle_uS_coupling), -1))
         cmd = 'P{}-{}={}us'.format(self.header, self.pin, uS)
         write_sb(cmd)
         self._angle = new_angle
@@ -71,30 +76,8 @@ def write_sb(cmd: str):
     Parameters:
     cmd -- command to send to servoblaster port
     """
-    servoblaster_fd.write((cmd + '\n').encode())
-
-
-def translate(value, leftMin, leftMax, rightMin, rightMax):
-    """
-    Map one range of values to another.
-
-    Parameters:
-    value -- the number, between leftMin and leftMax to map into
-             rightMin to rightMax
-    leftMin -- bottom of range of value parameter
-    leftMax -- top of range of value parameter
-    rightMin -- bottom of range of output
-    rightMax -- top of range of output
-    """
-    # Figure out how 'wide' each range is
-    leftSpan = leftMax - leftMin
-    rightSpan = rightMax - rightMin
-
-    # Convert the left range into a 0-1 range (float)
-    valueScaled = float(value - leftMin) / float(leftSpan)
-
-    # Convert the 0-1 range into a value in the right range.
-    return rightMin + (valueScaled * rightSpan)
+    with sb_write_lock:
+        servoblaster_fd.write((cmd + '\n').encode())
 
 
 @atexit.register
