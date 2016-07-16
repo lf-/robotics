@@ -15,6 +15,10 @@ def test_class():
     st.motor1 = 127
     time.sleep(0.1)
     assert ser.read(4) == bytes((128, 0, 127, 127))
+    # test correct behaviour with out of range values
+    st.motor1 = 255
+    time.sleep(0.1)
+    assert ser.read(4) == bytes((128, 0, 127, 127))
     # back
     st.motor1 = -127
     assert ser.read(4) == bytes((128, 1, 127, 0))
