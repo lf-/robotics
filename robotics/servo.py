@@ -24,7 +24,10 @@ else:
 
 
 class ServoPresets:
-    # (min_angle, max_angle, min_pulsewidth, max_pulsewidth)
+    """
+    Presets for common servo ratios
+    Format: (min_angle, max_angle, min_pulsewidth, max_pulsewidth)
+    """
     # bog-standard servo
     standard = (0, 180, 500, 2500)
     # SBRS-5314-HTG continuous (allegedly) servo
