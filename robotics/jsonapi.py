@@ -51,7 +51,7 @@ class TestableServer(socketserver.TCPServer):
         if TEST_QUEUE:
             test_queue.put('Server Running')
 
-    def shutdown():
+    def shutdown(self):
         socketserver.TCPServer.shutdown(self)
         socketserver.TCPServer.server_close(self)
 
