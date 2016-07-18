@@ -27,6 +27,17 @@ SUCCESS = {
 
 
 class TestableServer(socketserver.TCPServer):
+    """
+    A modified TCPServer that does the thing, but better!
+
+    * Complies with the test queue scheme for synchronisation
+
+    * Actually binds to the socket when the OS keeps it open for no
+      bloody reason
+
+    * Shutdown shuts down and cleans up, because that makes more sense than
+      default behaviour!
+    """
 
     def __init__(self, *args, **kwargs):
         socketserver.TCPServer.__init__(self, *args, **kwargs)
@@ -40,10 +51,14 @@ class TestableServer(socketserver.TCPServer):
         if TEST_QUEUE:
             test_queue.put('Server Running')
 
+    def shutdown():
+        socketserver.TCPServer.shutdown(self)
+        socketserver.TCPServer.server_close(self)
+
 
 class JSONAPIServer(socketserver.StreamRequestHandler):
     """
-    A server exposing a JSON based API over raw sockets.
+    A server exposing a JSON based API over a TCP socket
     """
 
     def handle(self):
@@ -72,7 +87,9 @@ class JSONAPIServer(socketserver.StreamRequestHandler):
 
 
 def termination_handler():
-    # SIGTERM signal handler
+    """
+    Handle SIGTERMs safely
+    """
     server.shutdown()
     sys.exit(0)
 
