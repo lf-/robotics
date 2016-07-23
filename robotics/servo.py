@@ -8,19 +8,22 @@ from . import util
 sb_write_lock = threading.Lock()
 
 
-if os.path.exists('/dev/servoblaster'):
-    # running on pi
-    servoblaster_fd = open('/dev/servoblaster', 'wb+', buffering=0)
-    test_port = None
-else:
-    # test mode
-    # TODO: don't abuse ptys
-    # Note: FIFOs don't work because of requiring the reading end to open it
-    #       first
-    import pty
-    pty_pair = pty.openpty()
-    servoblaster_fd = os.fdopen(pty_pair[0], 'wb', buffering=0)
-    test_port = os.ttyname(pty_pair[1])
+def module_init():
+    global servoblaster_fd
+    global test_port
+    if os.path.exists('/dev/servoblaster'):
+        # running on pi
+        servoblaster_fd = open('/dev/servoblaster', 'wb+', buffering=0)
+        test_port = None
+    else:
+        # test mode
+        # TODO: don't abuse ptys
+        # Note: FIFOs don't work because of requiring the reading end to open it
+        #       first
+        import pty
+        pty_pair = pty.openpty()
+        servoblaster_fd = os.fdopen(pty_pair[0], 'wb', buffering=0)
+        test_port = os.ttyname(pty_pair[1])
 
 
 class ServoPresets:
@@ -86,3 +89,6 @@ def write_sb(cmd: str):
 @atexit.register
 def close_fd():
     servoblaster_fd.close()
+
+
+module_init()
