@@ -36,10 +36,10 @@ else:
 START = bytes((170,))
 MAX_SPEED = 127
 
-SPEED_FWD_M1 = 0
-SPEED_BACK_M1 = 1
-SPEED_FWD_M2 = 4
-SPEED_BACK_M2 = 5
+CMD_FWD_M1 = 0
+CMD_BACK_M1 = 1
+CMD_FWD_M2 = 4
+CMD_BACK_M2 = 5
 
 
 class Sabertooth:
@@ -72,9 +72,9 @@ class Sabertooth:
 
         self._motor1speed = speed
         if speed >= 0:
-            packet = generate_packet(self.addr, SPEED_FWD_M1, int(speed))
+            packet = generate_packet(self.addr, CMD_FWD_M1, int(speed))
         elif speed < 0:
-            packet = generate_packet(self.addr, SPEED_BACK_M1, int(abs(speed)))
+            packet = generate_packet(self.addr, CMD_BACK_M1, int(abs(speed)))
         send(packet)
 
     @property
@@ -94,9 +94,9 @@ class Sabertooth:
 
         self._motor2speed = speed
         if speed >= 0:
-            packet = generate_packet(self.addr, SPEED_FWD_M2, int(speed))
+            packet = generate_packet(self.addr, CMD_FWD_M2, int(speed))
         elif speed < 0:
-            packet = generate_packet(self.addr, SPEED_BACK_M2, int(abs(speed)))
+            packet = generate_packet(self.addr, CMD_BACK_M2, int(abs(speed)))
         send(packet)
 
 
