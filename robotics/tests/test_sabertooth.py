@@ -6,10 +6,16 @@ import time
 ser = serial.Serial(sabertooth.test_device, timeout=0)
 
 
+def clear_serial_buffer():
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+
+
 def test_packet_generation():
     assert sabertooth.generate_packet(130, 0, 64) == bytes((130, 0, 64, 66))
 
 def test_class():
+    clear_serial_buffer()
     st = sabertooth.Sabertooth(128)
     # test forwards motor 1
     st.motor1 = 127
