@@ -1,5 +1,4 @@
 from . import sabertooth
-from . import servo
 from . import util
 from . import config
 
@@ -33,8 +32,13 @@ class Robot:
             throttleR = throttle
         if self.reverse_drive:
             throttleL, throttleR = throttleR, throttleL
-        self.drive_sabertooth.motor1 = throttleL
-        self.drive_sabertooth.motor2 = throttleR
+        self.throttleL = throttleL
+        self.throttleR = throttleR
+
+        self.drive_sabertooth.motor1 = util.translate(throttleL, -1, 1,
+                                                      -127, 127)
+        self.drive_sabertooth.motor2 = util.translate(throttleR, -1, 1,
+                                                      -127, 127)
 
 
 robot = Robot(config.DRIVE_SABERTOOTH_ID, config.REVERSE_DRIVE)
