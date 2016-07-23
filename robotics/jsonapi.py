@@ -1,9 +1,8 @@
 import socketserver
 import json
-import signal
-import sys
 import queue
 import socket
+import atexit
 
 from . import robot
 from . import config
@@ -86,14 +85,12 @@ class JSONAPIServer(socketserver.StreamRequestHandler):
                 test_queue.put('Request Done')
 
 
-def termination_handler():
+@atexit.register
+def on_exit():
     """
-    Handle SIGTERMs safely
+    Shutdown on program end
     """
     server.shutdown()
-    sys.exit(0)
-
-signal.signal(signal.SIGTERM, termination_handler)
 
 
 def run():

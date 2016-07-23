@@ -52,6 +52,27 @@ def test_call():
     sock.close()
     jsonapi.server.shutdown()
 
+def test_set():
+    """
+    Test the 'call' method in an incoming jsonapi data structure
+    """
+    testdata = {
+        'set': 'test_val',
+        'value': 255
+    }
+
+    jsonapi.TEST_QUEUE = True
+
+    start_server_thread()
+    sock = connect_server()
+
+    sock.send((json.dumps(testdata) + '\n').encode())
+    assert jsonapi.test_queue.get() == 'Request Done'
+    assert robot.robot.test_val == 255
+
+    sock.close()
+    jsonapi.server.shutdown()
+
 
 def test_baddata():
     """
@@ -68,3 +89,14 @@ def test_baddata():
 
     sock.close()
     jsonapi.server.shutdown()
+
+
+def test_on_exit():
+    """
+    Test that the onexit method properly shuts down the server.
+    """
+    old_shutdown = jsonapi.server.shutdown
+    jsonapi.server.shutdown = mock.MagicMock()
+    jsonapi.on_exit()
+    assert jsonapi.server.shutdown.called
+    jsonapi.server.shutdown = old_shutdown
