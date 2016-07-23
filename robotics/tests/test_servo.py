@@ -22,4 +22,4 @@ def test_servo_class():
 
 @atexit.register
 def on_exit():
-    test_fd.close()
+    test_fd.close()  # pragma: no cover
