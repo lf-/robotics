@@ -3,6 +3,7 @@ import atexit
 import os
 import os.path
 import threading
+import sys
 
 from . import config
 
@@ -30,7 +31,9 @@ if not os.path.exists(serial_device):
     libc.unlockpt(ser.fd)
     test_device = libc.ptsname(ser.fd).decode('utf-8')
 else:
-    ser = serial.Serial(serial_device, 9600)
+    # excluded from coverage, behaviour pretty tricky to test plus is really
+    # only testing that os.path.exists works, which it does
+    ser = serial.Serial(serial_device, 9600)  # pragma: no cover
 
 
 START = bytes((170,))
@@ -64,11 +67,7 @@ class Sabertooth:
         """
         Set motor 1 of the sabertooth to a given speed (0-127)
         """
-        # no sending in stupid values and crashing
-        if speed > MAX_SPEED:
-            speed = MAX_SPEED
-        elif speed < -MAX_SPEED:
-            speed = -MAX_SPEED
+        speed = _limit_speed(speed)
 
         self._motor1speed = speed
         if speed >= 0:
@@ -86,18 +85,30 @@ class Sabertooth:
         """
         Set motor 2 of the sabertooth to a given speed (0-127)
         """
-        # no sending in stupid values and crashing
-        if speed > MAX_SPEED:
-            speed = MAX_SPEED
-        elif speed < -MAX_SPEED:
-            speed = -MAX_SPEED
-
+        speed = _limit_speed(speed)
         self._motor2speed = speed
         if speed >= 0:
             packet = generate_packet(self.addr, CMD_FWD_M2, int(speed))
         elif speed < 0:
             packet = generate_packet(self.addr, CMD_BACK_M2, int(abs(speed)))
         send(packet)
+
+
+def _limit_speed(speed: int) -> int:
+    """
+    Limit speeds to the correct range.
+
+    Parameters:
+    speed -- speed to limit
+
+    Returns:
+    A value between MAX_SPEED and -MAX_SPEED
+    """
+    if speed > MAX_SPEED:
+        speed = MAX_SPEED
+    elif speed < -MAX_SPEED:
+        speed = -MAX_SPEED
+    return speed
 
 
 def generate_packet(addr, cmd, data) -> bytes:
@@ -125,13 +136,11 @@ def send(data: bytes):
     Parameters:
     data -- a bytes object
     """
-    if 'LF_SERIAL_DEBUG' in os.environ:
-        print(data.hex())
     with serial_write_lock:
         ser.write(data)
 
 
-def setup():
+def init_bus():
     """
     Sends the initial 0xaa byte to the sabertooth to initialize it.
     Do not call more than once *per boot* nor within 1 second of powering the
@@ -148,16 +157,21 @@ def onexit():
     ser.close()
 
 
-def main():
+def parse_args(args):
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--address', '-a', type=int, required=True)
+    parser.add_argument('--motornum', '-m', type=int, required=True)
+    parser.add_argument('--speed', '-s', type=int, required=True)
+    return parser.parse_args(args)
+
+
+def main(argv=None):
     """
     A rudimentary CLI for controlling sabertooths
     """
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--address', '-a', type=int)
-    parser.add_argument('--motornum', '-m', type=int)
-    parser.add_argument('--speed', '-s', type=int)
-    args = parser.parse_args()
+    argv = argv if argv else sys.argv[1:]
+    args = parse_args(argv)
     saber = Sabertooth(args.address)
     if args.motornum == 1:
         saber.motor1 = args.speed
@@ -165,4 +179,4 @@ def main():
         saber.motor2 = args.speed
 
 if __name__ == '__main__':
-    main()
+    main()  # pragma: no cover
