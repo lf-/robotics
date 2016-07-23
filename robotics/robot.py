@@ -17,7 +17,7 @@ class Robot:
         self.drive_sabertooth = sabertooth.Sabertooth(drive_sabertooth_id)
         self.reverse_drive = reverse_drive
 
-    def move(throttle, turn, **args):
+    def move(self, throttle, turn, **args):
         """
         Run the main wheels.
 
