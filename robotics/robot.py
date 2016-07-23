@@ -28,7 +28,7 @@ class Robot:
             throttleL = throttle
             throttleR = throttle * (1 - turn)
         elif turn < 0:
-            throttleL = throttle * (1 - turn)
+            throttleL = throttle * (1 - abs(turn))
             throttleR = throttle
         if self.reverse_drive:
             throttleL, throttleR = throttleR, throttleL
