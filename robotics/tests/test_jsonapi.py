@@ -2,6 +2,7 @@ import threading
 import socket
 import json
 from unittest import mock
+import pytest
 
 from .. import jsonapi
 from .. import robot
@@ -30,6 +31,32 @@ def connect_server() -> socket.socket:
     return sock
 
 
+def test_require():
+    test = {
+        'a': 'b',
+        'c': 'd'
+    }
+    jsonapi.require(('a'), test)
+    with pytest.raises(ValueError):
+        jsonapi.require(('z',), test)
+
+
+def test_process():
+    testdata = {
+        'method': 'test_method',
+        'data': 1234
+    }
+
+    # test absent method
+    with pytest.raises(ValueError):
+        jsonapi.process_request(testdata)
+
+    test_mock = mock.MagicMock()
+    jsonapi.METHODS.update({'test_method': test_mock})
+    jsonapi.process_request(testdata)
+    test_mock.assert_called_with(1234)
+
+
 def test_call():
     """
     Test the 'call' method in an incoming jsonapi data structure
@@ -39,53 +66,47 @@ def test_call():
         'args': {'test': 42}
     }
 
-    jsonapi.TEST_QUEUE = True
     robot.robot.test_func = mock.MagicMock()
 
-    start_server_thread()
-    sock = connect_server()
+    jsonapi.api_call(testdata)
 
-    sock.send((json.dumps(testdata) + '\n').encode())
-    assert jsonapi.test_queue.get() == 'Request Done'
-    robot.robot.test_func.assert_called_with(test=42)
-
-    sock.close()
-    jsonapi.server.shutdown()
 
 def test_set():
     """
-    Test the 'call' method in an incoming jsonapi data structure
+    Test the 'set' implementation
     """
     testdata = {
-        'set': 'test_val',
+        'name': 'test_val',
         'value': 255
     }
 
-    jsonapi.TEST_QUEUE = True
-
-    start_server_thread()
-    sock = connect_server()
-
-    sock.send((json.dumps(testdata) + '\n').encode())
-    assert jsonapi.test_queue.get() == 'Request Done'
+    jsonapi.api_set(testdata)
     assert robot.robot.test_val == 255
 
-    sock.close()
-    jsonapi.server.shutdown()
 
-
-def test_baddata():
+def test_handle():
     """
-    Sends the jsonapi some malformed JSON to make sure it errors out properly.
+    Test the request handler
     """
     jsonapi.TEST_QUEUE = True
     start_server_thread()
     sock = connect_server()
 
+    # test malformed data
     sock.send(b'NOTJSON\n')
     assert jsonapi.test_queue.get() == 'Request Done'
     # ensure it returns an error code
     assert json.loads(sock.recv(1024).decode())['status'] == -1
+
+    # test correct data
+    testdata = {
+        'a': 'b'
+    }
+    with mock.patch.object(jsonapi, 'process_request') as m:
+        sock.send(json.dumps(testdata).encode() + b'\n')
+        assert jsonapi.test_queue.get() == 'Request Done'
+        m.assert_called_with(testdata)
+        sock.recv(1024)
 
     sock.close()
     jsonapi.server.shutdown()

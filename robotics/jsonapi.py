@@ -14,15 +14,24 @@ TEST_QUEUE = False
 test_queue = queue.Queue()
 
 
-DECODE_ERROR = {
-    'status': -1,
-    'message': 'Exception occurred while loading request'
-}
-
 SUCCESS = {
     'status': 0,
+    'exception': None,
     'message': 'success'
 }
+
+
+def require(required, data):
+    """
+    Require that all of required are in data
+
+    Parameters:
+    required -- iterable of things required to be contained in data
+    data -- an object supporting the contains operator
+    """
+    if not all(x in data for x in required):
+        raise ValueError('Not all of required {} in '
+                         'provided object'.format(required))
 
 
 class TestableServer(socketserver.TCPServer):
@@ -55,6 +64,80 @@ class TestableServer(socketserver.TCPServer):
         socketserver.TCPServer.server_close(self)
 
 
+def api_set(data):
+    """
+    API function to set a value on the Robot singleton
+
+    Parameters:
+    data -- dict, see below
+
+    Dict contents:
+    name -- name of the attribute to set
+    value -- what to set it to
+    """
+    require(('name', 'value'), data)
+    var = data['name']
+    val = data['value']
+    setattr(robot.robot, var, val)
+
+
+def api_call(data):
+    """
+    API function to call a method on the Robot singleton
+
+    Parameters:
+    data -- dict, see below
+
+    Dict contents:
+    call -- name of the method to call
+    args -- dict containing the keyword arguments for the method, see
+            language note below
+
+    Language note:
+    Python allows positional arguments to be referred to by their names like
+    keyword arguments. api_call(data=x) is valid, even though data is a
+    positional argument
+    """
+    require(('call', 'args'), data)
+    call = data['call']
+    args = data['args']
+    func = getattr(robot.robot, call)
+    if func:
+        func(**args)
+
+
+def process_request(req: dict):
+    """
+    Processes a request, handing it off to the correct handler function
+
+    Parameters:
+    req -- request to process
+
+    Dict contents:
+    method -- method to use of (call, set)
+    data -- data to hand off to that method
+    """
+    require(('method', 'data'), req)
+
+    def method_missing(*args):
+        raise ValueError('No such API method')
+
+    method = METHODS.get(req['method'], method_missing)
+    method(req['data'])
+
+
+def get_error(exc: Exception) -> dict:
+    """
+    Gets the proper object to return to the sender from an exception
+    """
+    template = {
+        'status': -1,
+        'exception': exc.__class__.__name__,
+        'message': exc.args
+    }
+    return template
+
+
 class JSONAPIServer(socketserver.StreamRequestHandler):
     """
     A server exposing a JSON based API over a TCP socket
@@ -69,18 +152,11 @@ class JSONAPIServer(socketserver.StreamRequestHandler):
                 if line == b'':
                     break
                 req = json.loads(line.decode())
+                process_request(req)
+                # lack of exception implies success
+                self.wfile.write(json.dumps(SUCCESS).encode())
             except Exception as e:
-                self.wfile.write(json.dumps(DECODE_ERROR).encode())
-                if TEST_QUEUE:
-                    test_queue.put('Request Done')
-                continue
-
-            if 'call' in req and 'args' in req:
-                func = getattr(robot.robot, req['call'])
-                if func:
-                    func(**req['args'])
-            if 'set' in req and 'value' in req:
-                setattr(robot.robot, req['set'], req['value'])
+                self.wfile.write(json.dumps(get_error(e)).encode())
             if TEST_QUEUE:
                 test_queue.put('Request Done')
 
@@ -97,3 +173,9 @@ def run():
     global server
     server = TestableServer(config.JSONAPI_BIND_ADDR, JSONAPIServer)
     server.serve_forever()
+
+
+METHODS = {
+    'set': api_set,
+    'call': api_call
+}
