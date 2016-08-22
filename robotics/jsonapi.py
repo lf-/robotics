@@ -106,6 +106,20 @@ def api_call(data):
         func(**args)
 
 
+def api_state(data):
+    """
+    API function to update the robot's state
+
+    Parameters:
+    data -- dict, see below
+
+    Dict contents:
+    state -- dict with the new state
+    """
+    require(('state',), data)
+    robot.robot.update_state(data['state'])
+
+
 def process_request(req: dict):
     """
     Processes a request, handing it off to the correct handler function
@@ -142,6 +156,12 @@ class JSONAPIServer(socketserver.StreamRequestHandler):
     """
     A server exposing a JSON based API over a TCP socket
     """
+    def respond(self, obj):
+        """
+        Respond to a request with a dict-like object
+        """
+        obj['state'] = robot.robot.state
+        self.wfile.write((json.dumps(obj) + '\n').encode())
 
     def handle(self):
         while True:
@@ -154,9 +174,9 @@ class JSONAPIServer(socketserver.StreamRequestHandler):
                 req = json.loads(line.decode())
                 process_request(req)
                 # lack of exception implies success
-                self.wfile.write(json.dumps(SUCCESS).encode())
+                self.respond(SUCCESS)
             except Exception as e:
-                self.wfile.write(json.dumps(get_error(e)).encode())
+                self.respond(get_error(e))
             if TEST_QUEUE:
                 test_queue.put('Request Done')
 
@@ -177,5 +197,6 @@ def run():
 
 METHODS = {
     'set': api_set,
-    'call': api_call
+    'call': api_call,
+    'state': api_state
 }

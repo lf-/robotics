@@ -41,6 +41,16 @@ def test_require():
         jsonapi.require(('z',), test)
 
 
+def test_get_error():
+    exc = NameError('abc')
+    expected = {
+        'status': -1,
+        'exception': 'NameError',
+        'message': ('abc',)
+    }
+    assert jsonapi.get_error(exc) == expected
+
+
 def test_process():
     testdata = {
         'method': 'test_method',
@@ -59,7 +69,7 @@ def test_process():
 
 def test_call():
     """
-    Test the 'call' method in an incoming jsonapi data structure
+    Test the 'call' api method
     """
     testdata = {
         'call': 'test_func',
@@ -84,6 +94,19 @@ def test_set():
     assert robot.robot.test_val == 255
 
 
+def test_state():
+    testdata = {
+        'state': {
+            'test': 'abc'
+        }
+    }
+
+    with mock.patch.object(robot.robot, 'STATE_PROPS',
+                           new=robot.robot.STATE_PROPS | {'test'}):
+        jsonapi.api_state(testdata)
+        assert robot.robot.test == 'abc'
+
+
 def test_handle():
     """
     Test the request handler
@@ -106,7 +129,9 @@ def test_handle():
         sock.send(json.dumps(testdata).encode() + b'\n')
         assert jsonapi.test_queue.get() == 'Request Done'
         m.assert_called_with(testdata)
-        sock.recv(1024)
+        resp = sock.recv(1024)
+        # ensure proper sending of state
+        assert json.loads(resp.decode())['state'] == robot.robot.state
 
     sock.close()
     jsonapi.server.shutdown()
