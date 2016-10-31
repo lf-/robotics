@@ -1,0 +1,10 @@
+[Unit]
+Description=Robot Control System for Raspberry Pi
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/robotd
+
+[Install]
+After=network-online.target
+WantedBy=multi-user.target
