@@ -16,29 +16,27 @@ def test_packet_generation():
     assert sabertooth.generate_packet(130, 0, 64) == bytes((130, 0, 64, 66))
 
 
-def test_motorN():
+@mock.patch.object(sabertooth, 'send')
+def test_motorN(send_mock):
     """
     Test the behaviour of the Sabertooth.motor{1,2} properties
     """
-    clear_serial_buffer()
     st = sabertooth.Sabertooth(128)
     # test forwards motor 1
     st.motor1 = 127
-    time.sleep(0.1)
-    assert ser.read(4) == bytes((128, 0, 127, 127))
+    send_mock.assert_called_with(bytes((128, 0, 127, 127)))
     # test correct behaviour with out of range values
     st.motor1 = 255
-    time.sleep(0.1)
-    assert ser.read(4) == bytes((128, 0, 127, 127))
+    send_mock.assert_called_with(bytes((128, 0, 127, 127)))
     # back
     st.motor1 = -127
-    assert ser.read(4) == bytes((128, 1, 127, 0))
+    send_mock.assert_called_with(bytes((128, 1, 127, 0)))
     # motor 2 forward
     st.motor2 = 127
-    assert ser.read(4) == bytes((128, 4, 127, 3))
+    send_mock.assert_called_with(bytes((128, 4, 127, 3)))
     # back
     st.motor2 = -127
-    assert ser.read(4) == bytes((128, 5, 127, 4))
+    send_mock.assert_called_with(bytes((128, 5, 127, 4)))
 
     # ensure correct storage
     st.motor1 = 127
@@ -57,13 +55,13 @@ def test_limit_speed():
     assert sabertooth._limit_speed(-64) == -64
 
 
-def test_init_bus():
+@mock.patch.object(sabertooth, 'send')
+def test_init_bus(send_mock):
     """
     Ensure init_bus() sends the correct start byte
     """
-    clear_serial_buffer()
     sabertooth.init_bus()
-    assert ser.read(1) == bytes((0xaa,))
+    send_mock.assert_called_with(bytes((0xaa,)))
 
 
 def test_onexit():
