@@ -97,7 +97,7 @@ def handle_args(args):
     meth(args)
 
 
-def main(args):
+def main(args=sys.argv[1:]):
     parsed_args = parse_args(args)
     handle_args(parsed_args)
 
