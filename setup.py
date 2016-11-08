@@ -5,6 +5,11 @@ setup(name="Robotics",
     description="A Robotics Library",
     author="Lucas Fink, Quinn Parrott",
     url="github.com/lf-/robotics",
-    packages=["robotics"]
+    packages=["robotics"],
+    entry_points={
+        'console_scripts': [
+            'robotctl = robotics.cli:main'
+        ]
+    }
 )
 
