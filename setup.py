@@ -8,7 +8,8 @@ setup(name="Robotics",
     packages=["robotics"],
     entry_points={
         'console_scripts': [
-            'robotctl = robotics.cli:main'
+            'robotctl = robotics.cli:main',
+            'robotd = robotics.jsonapi:main'
         ]
     }
 )

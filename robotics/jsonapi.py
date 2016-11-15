@@ -186,12 +186,14 @@ def on_exit():
     """
     Shutdown on program end
     """
+    global server
     server.shutdown()
 
 
-def run():
+def main():
     global server
     server = TestableServer(config.JSONAPI_BIND_ADDR, JSONAPIServer)
+    print('Starting robotd...')
     server.serve_forever()
 
 
@@ -200,3 +202,7 @@ METHODS = {
     'call': api_call,
     'state': api_state
 }
+
+
+if __name__ == '__main__':
+    main()
