@@ -7,7 +7,7 @@ def on_joystick_axis(joy, axis, value):
 
 
 def init():
-    sdl2.SDL_Init(sdl2.SDL_INIT_JOYSTICK | sdl2.SDL_INIT_HAPTIC)
+    sdl2.SDL_Init(sdl2.SDL_INIT_JOYSTICK | sdl2.SDL_INIT_EVENTS)
 
 
 def check_controller():
@@ -21,6 +21,8 @@ def main():
 
 
 def run():
+    # open the joystick so we get events for it
+    sdl2.SDL_JoystickOpen(0)
     evt = sdl2.SDL_Event()
     running = True
     while running:
