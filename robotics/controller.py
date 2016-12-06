@@ -13,6 +13,11 @@ def check_controller():
     if not sdl2.SDL_NumJoysticks() > 0:
         raise RuntimeError('No controllers available')
 
+def main():
+    init()
+    check_controller()
+    run()
+
 
 def run():
     evt = sdl2.SDL_Event()
