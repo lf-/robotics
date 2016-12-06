@@ -1,4 +1,5 @@
 import sdl2
+import ctypes
 
 
 def on_joystick_axis(joy, axis, value):
