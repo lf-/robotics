@@ -14,7 +14,7 @@ def start_server_thread():
     Start the jsonapi server in another thread
     """
     jsonapi.TEST_QUEUE = True
-    thr = threading.Thread(target=jsonapi.run)
+    thr = threading.Thread(target=jsonapi.main)
     thr.start()
     assert jsonapi.test_queue.get() == 'Server Running'
 
