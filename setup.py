@@ -9,7 +9,7 @@ setup(name="Robotics",
     entry_points={
         'console_scripts': [
             'robotctl = robotics.cli:main',
-            'robotd = robotics.jsonapi:main'
+            'robotd = robotics:main'
         ]
     }
 )
