@@ -1,9 +1,15 @@
 import sdl2
 import ctypes
 
+from . import util
+from . import robot
 
-def on_joystick_axis(joy, axis, value):
-    print(axis, value)
+
+def on_joystick_axis(axis_state, axis, value):
+    throttle_combined = axis_state[5] - axis_state[2]
+    throttle = util.translate(throttle_combined, -65535, 65535, -1, 1)
+    turn = util.translate(axis_state[0], -32768, 32767, -1, 1)
+    robot.robot.move(throttle, turn)
 
 
 def init():
@@ -21,6 +27,7 @@ def main():
 
 
 def run():
+    axis_state = [0, 0, 0, 0, 0, 0]
     # open the joystick so we get events for it
     sdl2.SDL_JoystickOpen(0)
     evt = sdl2.SDL_Event()
@@ -32,5 +39,6 @@ def run():
                 break
             elif evt.type == sdl2.SDL_JOYAXISMOTION:
                 jaxis = evt.jaxis
-                on_joystick_axis(jaxis.which, jaxis.axis, jaxis.value)
+                axis_state[jaxis.axis] = jaxis.value
+                on_joystick_axis(axis_state, jaxis.axis, jaxis.value)
     sdl2.SDL_Quit()
