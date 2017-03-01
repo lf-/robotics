@@ -33,12 +33,15 @@ class ServoPresets:
     """
     # bog-standard servo
     standard = (0, 180, 500, 2500)
+    # single vantec w/ correct center
+    single_vantec = (0, 180, 400, 3100)
     # SBRS-5314-HTG continuous (allegedly) servo
     sbrs5314 = (0, 280, 900, 2100)
 
 
 class Servo:
-    def __init__(self, pin, header=1, angle_uS_coupling=(0, 180, 500, 2500)):
+    def __init__(self, pin, header=1,
+                 angle_uS_coupling=ServoPresets.single_vantec):
         """
         Abstract object for controlling a servo using the ServoBlaster daemon
 
