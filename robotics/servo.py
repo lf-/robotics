@@ -41,7 +41,7 @@ class ServoPresets:
 
 class Servo:
     def __init__(self, pin, header=1,
-                 angle_uS_coupling=ServoPresets.single_vantec):
+                 angle_uS_coupling=ServoPresets.standard):
         """
         Abstract object for controlling a servo using the ServoBlaster daemon
 

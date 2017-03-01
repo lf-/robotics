@@ -8,14 +8,14 @@ from . import config
 
 
 serv = servo.Servo(config.SERVO_PIN)
-serv.angle = 90
+serv.angle = 85
 
 
 def on_joystick_axis(axis_state, axis, value):
     throttle_combined = axis_state[5] - axis_state[2]
     throttle = util.translate(throttle_combined, -65535, 65535, -1, 1)
     turn = util.translate(axis_state[0], -32768, 32767, -1, 1)
-    servo_pos = util.translate(axis_state[3], -32768, 32767, 70, 110)
+    servo_pos = util.translate(axis_state[3], -32768, 32767, 55, 115)
     robot.robot.move(throttle, turn)
     serv.angle = servo_pos
 
