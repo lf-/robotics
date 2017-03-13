@@ -1,5 +1,6 @@
 import sdl2
 import ctypes
+import time
 
 from . import util
 from . import robot
@@ -16,12 +17,12 @@ def on_joystick_axis(axis_state, axis, value):
     throttle = util.translate(throttle_combined, -65535, 65535, -1, 1)
     turn = util.translate(axis_state[0], -32768, 32767, -1, 1)
     servo_pos = util.translate(axis_state[3], -32768, 32767, 55, 115)
-    robot.robot.move(throttle, turn)
+    robot.robot.move(throttle ** 3, turn)
     serv.angle = servo_pos
 
 
 def init():
-    sdl2.SDL_Init(sdl2.SDL_INIT_JOYSTICK | sdl2.SDL_INIT_EVENTS)
+    sdl2.SDL_Init(sdl2.SDL_INIT_JOYSTICK | sdl2.SDL_INIT_HAPTIC | sdl2.SDL_INIT_EVENTS)
 
 
 def check_controller():
@@ -35,9 +36,18 @@ def main():
 
 
 def run():
+    while sdl2.SDL_NumJoysticks() < 1:
+        print('Waiting for controller...')
+        time.sleep(0.1)
+    print('Got controller')
     axis_state = [0, 0, 0, 0, 0, 0]
     # open the joystick so we get events for it
-    sdl2.SDL_JoystickOpen(0)
+    js = sdl2.SDL_JoystickOpen(0)
+    haptic = sdl2.SDL_HapticOpenFromJoystick(js)
+    if sdl2.SDL_HapticRumbleSupported(haptic):
+        sdl2.SDL_HapticRumbleInit(haptic)
+        sdl2.SDL_HapticRumblePlay(haptic, 1.0, 1500)
+
     evt = sdl2.SDL_Event()
     running = True
     while running:
