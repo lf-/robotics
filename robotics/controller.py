@@ -59,4 +59,5 @@ def run():
                 jaxis = evt.jaxis
                 axis_state[jaxis.axis] = jaxis.value
                 on_joystick_axis(axis_state, jaxis.axis, jaxis.value)
+        time.sleep(0.01)
     sdl2.SDL_Quit()
